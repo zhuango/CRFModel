@@ -473,6 +473,8 @@ namespace CRFModel
                         {
                             Fs[k] = potentialTable.Logs[index + k*potentialTable.LogsSize2] + (*message)[i-1][k];
                         }
+                        // numerical stability:
+                        // log( sum(exp(Fs)) ) = a + log( sum(exp(Fs - a)) )
                         maxProb = *(max_element(Fs.begin(), Fs.end()));
 
                         for(k = 0; k < mLabelStateSize; ++k)
@@ -506,6 +508,8 @@ namespace CRFModel
                         {
                             Fs[k] = potentialTable.Logs[index + k] + (*message)[i+1][k];
                         }
+                        // numerical stability:
+                        // log( sum(exp(Fs)) ) = a + log( sum(exp(Fs - a)) )
                         maxProb = *(max_element(Fs.begin(), Fs.end()));
 
                         for(k = 0; k < mLabelStateSize; ++k)
