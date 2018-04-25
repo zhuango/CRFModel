@@ -630,7 +630,7 @@ namespace CRFModel
                 {
                     mWedge[i] -= mWedgeGradient[i] * rate;
                 }
-
+                // regularization.
                 for(i = 0; i < seqLength; ++i)
                 {
                     for(auto &elem : sequence.GetFeature(i, (*labels)[i]))
