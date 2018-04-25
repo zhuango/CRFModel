@@ -126,6 +126,9 @@ namespace CRFModel
     size_t Seq::FeatureOffset = 0;
 
 
+    // For each time step after the first, there is a 2D(labelSize * labelSize) matrix indexed by the label.
+    // Thus, data structure of LogPotentialTable is a (seqLength-1) * labelSize * labelSize tensor.
+    // Log0 represent the first time step node.
     class PotentialTable
     {
         public:
@@ -264,14 +267,16 @@ namespace CRFModel
                 int index = 0;
                 double max = 0.0;
                 int maxarg = 0;
+                // For each time step, there is a 2D(labelSize * labelSize) matrix indexed by the label.
+                // Thus, data structure of LogPotentialTable is a seqLength * labelSize * labelSize;
                 PotentialTable * potentialTable = LogPotentialTable(sequence);
                 VectorInt *labels = new VectorInt(seqLength, 0);
                 MatrixInt path(seqLength, VectorInt(mLabelStateSize, 0));
                 double *tempPotential = new double[potentialTable->Log0Size];
-                double *prevPotential = new double[potentialTable->Log0Size];
-                double *currPotential = new double[potentialTable->Log0Size];
+                double *prevMaxPotential = new double[potentialTable->Log0Size];
+                double *currMaxPotential = new double[potentialTable->Log0Size];
                 double *tempForSwap = NULL;
-                copy(potentialTable->Log0, potentialTable->Log0 + potentialTable->Log0Size, prevPotential);
+                copy(potentialTable->Log0, potentialTable->Log0 + potentialTable->Log0Size, prevMaxPotential);
                 for(int i = 1; i < seqLength; ++i)
                 {
                     for (int j = 0; j < mLabelStateSize; ++j)
@@ -281,24 +286,26 @@ namespace CRFModel
                         index = (i-1) * potentialTable->LogsSize1MulLogSize2 + j;
                         for(int k = 0; k < mLabelStateSize; ++k)
                         {
-                            tempPotential[k] = prevPotential[k] + potentialTable->Logs[index + k*potentialTable->LogsSize2];
+                            tempPotential[k] = prevMaxPotential[k] + potentialTable->Logs[index + k*potentialTable->LogsSize2];
                             if (tempPotential[k] > tempPotential[maxarg])
                             {
                                 maxarg = k;
                                 max = tempPotential[k];
                             }
                         }
+                        // maxarg is the most likely previous state for each current state j.
+                        // max the the likelihood of state.
                         path[i-1][j] = maxarg;
-                        currPotential[j] = max;
+                        currMaxPotential[j] = max;
                     }
-                    tempForSwap = currPotential;
-                    currPotential = prevPotential;
-                    prevPotential = tempForSwap;
+                    tempForSwap = currMaxPotential;
+                    currMaxPotential = prevMaxPotential;
+                    prevMaxPotential = tempForSwap;
                 }
                 maxarg= 0;
                 for(int i = 1; i < mLabelStateSize; ++i)
                 {
-                    if (prevPotential[i] > prevPotential[maxarg])
+                    if (prevMaxPotential[i] > prevMaxPotential[maxarg])
                     {
                         maxarg = i;
                     }
@@ -309,8 +316,8 @@ namespace CRFModel
                     (*labels)[i] = path[i][(*labels)[i + 1]];
                 }
 
-                delete[] currPotential;
-                delete[] prevPotential;
+                delete[] currMaxPotential;
+                delete[] prevMaxPotential;
                 delete[] tempPotential;
                 delete potentialTable;
 
