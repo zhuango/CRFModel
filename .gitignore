@@ -21,3 +21,4 @@
 !*.mongo
 !*.sh
 !*.dll
+!*.txt
