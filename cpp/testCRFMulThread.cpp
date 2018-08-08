@@ -72,11 +72,11 @@ vector<Seq*> *load(string filename)
 int main()
 {
     string fold = "4";
-    string trainCorpus = "/home/laboratory/github/homeWork/machineTranslation/data/train.txt" + fold;
-    string testCorpus  = "/home/laboratory/github/homeWork/machineTranslation/data/test.txt" + fold;
+    string trainCorpus = "../data/train" + fold + ".txt";
+    string testCorpus  = "../data/test" + fold + ".txt";
     cout << "cache label..." << endl;
     ifstream labels;
-    labels.open("/home/laboratory/github/homeWork/machineTranslation/data/pos.txt");
+    labels.open("../data/pos.txt");
     int index = 0;
     string line;
     while(getline(labels, line))
@@ -126,7 +126,7 @@ int main()
     cout << "testing..." << endl;
     double correct = 0.0;
     double count = 0.0;
-    string resultFile = "./resultfold" + fold;
+    string resultFile = "./result" + fold + "/result";
     ofstream resultStream(resultFile);
     for(Seq *seq : *test)
     {
